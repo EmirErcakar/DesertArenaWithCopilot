@@ -43,6 +43,8 @@ namespace DesertArena.XP
 
         #region Private Fields
 
+        private const int MAX_REROLL_ATTEMPTS = 20;
+
         private readonly Dictionary<StatType, int> _statPickCounts =
             new Dictionary<StatType, int>();
 
@@ -144,7 +146,7 @@ namespace DesertArena.XP
                 }
             }
 
-            const int maxAttempts = 20;
+            const int maxAttempts = MAX_REROLL_ATTEMPTS;
             for (int attempt = 0; attempt < maxAttempts; attempt++)
             {
                 GenerateCards();

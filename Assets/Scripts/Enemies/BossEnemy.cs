@@ -238,10 +238,9 @@ namespace DesertArena.Enemies
         {
             yield return new WaitForSeconds(deathAnimationDuration);
 
-            // Signal level end via GameManager
+            // Complete the level first, then set victory state
             if (GameManager.HasInstance)
             {
-                GameManager.Instance.SetState(GameManager.GameState.Victory);
                 GameManager.Instance.CompleteLevel();
             }
 
