@@ -1,0 +1,255 @@
+using System.Collections;
+using UnityEngine;
+using DesertArena.Core;
+
+namespace DesertArena.Enemies
+{
+    /// <summary>
+    /// Manages wave-based enemy spawning for a level.
+    /// Spawns enemies in phases over time, with difficulty ramping.
+    /// Boss spawns on every 5th level with a countdown timer.
+    /// </summary>
+    public class EnemySpawner : MonoBehaviour
+    {
+        #region Serialized Fields
+
+        [Header("Spawn Points")]
+        [SerializeField] [Tooltip("Transforms where enemies can be spawned.")]
+        private Transform[] spawnPoints;
+
+        [Header("Enemy Prefabs")]
+        [SerializeField] [Tooltip("Melee knife enemy prefab.")]
+        private GameObject meleeKnifePrefab;
+
+        [SerializeField] [Tooltip("Melee sword enemy prefab.")]
+        private GameObject meleeSwordPrefab;
+
+        [SerializeField] [Tooltip("Ranged enemy prefab.")]
+        private GameObject rangedEnemyPrefab;
+
+        [SerializeField] [Tooltip("Boss enemy prefab.")]
+        private GameObject bossPrefab;
+
+        [Header("Spawn Settings")]
+        [SerializeField] [Tooltip("Maximum number of enemies alive at once.")]
+        private int maxConcurrentEnemies = 15;
+
+        [SerializeField] [Tooltip("Base time between spawns (seconds).")]
+        private float baseSpawnInterval = 2f;
+
+        [SerializeField] [Tooltip("Minimum spawn interval as difficulty ramps.")]
+        private float minSpawnInterval = 0.5f;
+
+        [SerializeField] [Tooltip("How much faster spawns get per second elapsed.")]
+        private float spawnAcceleration = 0.01f;
+
+        [Header("Phase Timing (seconds)")]
+        [SerializeField] [Tooltip("Time when Phase 2 begins (MeleeSword added).")]
+        private float phase2StartTime = 35f;
+
+        [SerializeField] [Tooltip("Time when Phase 3 begins (Ranged added).")]
+        private float phase3StartTime = 65f;
+
+        [Header("Boss")]
+        [SerializeField] [Tooltip("Boss countdown duration in seconds.")]
+        private int bossCountdownDuration = 10;
+
+        #endregion
+
+        #region Private Fields
+
+        private float _elapsedTime;
+        private float _spawnTimer;
+        private int _currentEnemyCount;
+        private bool _bossSpawned;
+        private bool _spawningActive;
+
+        #endregion
+
+        #region Properties
+
+        /// <summary>Elapsed time since spawning started.</summary>
+        public float ElapsedTime => _elapsedTime;
+
+        /// <summary>Number of enemies currently alive.</summary>
+        public int CurrentEnemyCount => _currentEnemyCount;
+
+        #endregion
+
+        #region Unity Lifecycle
+
+        private void OnEnable()
+        {
+            EventBus.OnEnemyKilled += HandleEnemyKilled;
+        }
+
+        private void OnDisable()
+        {
+            EventBus.OnEnemyKilled -= HandleEnemyKilled;
+        }
+
+        private void Start()
+        {
+            _spawningActive = true;
+
+            // Check if this is a boss level (every 5th level)
+            if (GameManager.HasInstance && (GameManager.Instance.CurrentLevel + 1) % 5 == 0)
+            {
+                StartCoroutine(BossCountdownRoutine());
+            }
+        }
+
+        private void Update()
+        {
+            if (!_spawningActive || _bossSpawned) return;
+
+            _elapsedTime += Time.deltaTime;
+
+            // Spawn timer
+            _spawnTimer -= Time.deltaTime;
+            if (_spawnTimer <= 0f)
+            {
+                _spawnTimer = CurrentSpawnInterval();
+                TrySpawnEnemy();
+            }
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Stops all spawning activity.
+        /// </summary>
+        public void StopSpawning()
+        {
+            _spawningActive = false;
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        /// <summary>
+        /// Calculates the current spawn interval, which decreases over time.
+        /// </summary>
+        private float CurrentSpawnInterval()
+        {
+            float interval = baseSpawnInterval - (_elapsedTime * spawnAcceleration);
+            return Mathf.Max(interval, minSpawnInterval);
+        }
+
+        /// <summary>
+        /// Attempts to spawn an enemy at a random spawn point.
+        /// </summary>
+        private void TrySpawnEnemy()
+        {
+            if (_currentEnemyCount >= maxConcurrentEnemies) return;
+            if (spawnPoints == null || spawnPoints.Length == 0) return;
+
+            GameObject prefab = ChooseEnemyPrefab();
+            if (prefab == null) return;
+
+            Transform point = spawnPoints[Random.Range(0, spawnPoints.Length)];
+            GameObject enemyObj = Instantiate(prefab, point.position, point.rotation);
+
+            EnemyBase enemy = enemyObj.GetComponent<EnemyBase>();
+            if (enemy != null)
+            {
+                enemy.OnDeath += HandleEnemyDeath;
+            }
+
+            _currentEnemyCount++;
+        }
+
+        /// <summary>
+        /// Selects an enemy prefab based on the current phase.
+        /// </summary>
+        private GameObject ChooseEnemyPrefab()
+        {
+            if (_elapsedTime < phase2StartTime)
+            {
+                // Phase 1: only MeleeKnife
+                return meleeKnifePrefab;
+            }
+            else if (_elapsedTime < phase3StartTime)
+            {
+                // Phase 2: MeleeKnife + MeleeSword
+                return Random.value < 0.5f ? meleeKnifePrefab : meleeSwordPrefab;
+            }
+            else
+            {
+                // Phase 3: MeleeKnife + MeleeSword + Ranged
+                float roll = Random.value;
+                if (roll < 0.35f) return meleeKnifePrefab;
+                if (roll < 0.65f) return meleeSwordPrefab;
+                return rangedEnemyPrefab;
+            }
+        }
+
+        /// <summary>
+        /// Handles an individual enemy's OnDeath event to decrement the count.
+        /// </summary>
+        private void HandleEnemyDeath(EnemyBase enemy)
+        {
+            enemy.OnDeath -= HandleEnemyDeath;
+            _currentEnemyCount = Mathf.Max(_currentEnemyCount - 1, 0);
+        }
+
+        /// <summary>
+        /// Handles the EventBus enemy killed event (for external tracking).
+        /// </summary>
+        private void HandleEnemyKilled(EnemyType type)
+        {
+            // Reserved for analytics or UI updates
+        }
+
+        /// <summary>
+        /// Coroutine that displays a boss countdown, spawns the boss,
+        /// and stops regular enemy spawning.
+        /// </summary>
+        private IEnumerator BossCountdownRoutine()
+        {
+            // Let regular enemies spawn for a bit first
+            yield return new WaitForSeconds(phase2StartTime);
+
+            // Stop regular spawning
+            _spawningActive = false;
+
+            // Set game state to BossCountdown
+            if (GameManager.HasInstance)
+            {
+                GameManager.Instance.SetState(GameManager.GameState.BossCountdown);
+            }
+
+            // Countdown
+            for (int i = bossCountdownDuration; i > 0; i--)
+            {
+                Debug.Log($"BIG BOSS SPAWNING IN {i}...");
+                yield return new WaitForSeconds(1f);
+            }
+
+            // Resume playing state
+            if (GameManager.HasInstance)
+            {
+                GameManager.Instance.SetState(GameManager.GameState.Playing);
+            }
+
+            SpawnBoss();
+        }
+
+        /// <summary>
+        /// Spawns the boss enemy at a random spawn point.
+        /// </summary>
+        private void SpawnBoss()
+        {
+            if (bossPrefab == null || spawnPoints == null || spawnPoints.Length == 0) return;
+
+            _bossSpawned = true;
+            Transform point = spawnPoints[Random.Range(0, spawnPoints.Length)];
+            Instantiate(bossPrefab, point.position, point.rotation);
+        }
+
+        #endregion
+    }
+}
