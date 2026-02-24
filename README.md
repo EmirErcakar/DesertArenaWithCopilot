@@ -1,117 +1,120 @@
-# DesertArena — Mobile Top-Down Arena Survival Shooter
+# 🏜️ DesertArena — Mobil Arena Hayatta Kalma Oyunu
 
-A mobile portrait top-down low-poly 3D arena survival shooter built with Unity 6.3 LTS (6000.3.9f1) using Universal Render Pipeline (URP).
+Dikey mobil, üstten bakışlı, düşük poligonlu 3D arena hayatta kalma oyunu. Unity 6.3 LTS (6000.3.9f1), Universal Render Pipeline (URP) ile geliştirilmiştir.
 
-## Game Overview
+> **🇹🇷 Yeni başlayan mısınız?** → **[KURULUM_REHBERI.md](KURULUM_REHBERI.md)** dosyasını okuyun! Sıfırdan adım adım anlatılmıştır.
 
-**DesertArena** is a wave-based survival shooter set in a minimal desert environment. The player faces increasingly challenging waves of melee and ranged enemies, with bosses appearing every 5 levels. The game features auto-fire combat, an XP upgrade system, and a deep progression loop across 20 arenas with 35 levels each.
+---
 
-## Project Structure
+## 🎮 Oyun Hakkında
+
+**DesertArena** çöl temalı bir dalga bazlı hayatta kalma oyunudur:
+
+- 📱 Dikey mobil oyun (telefon dikey tutularak oynanır)
+- 🕹️ Joystick ile hareket, otomatik ateş sistemi
+- 👾 Dalga bazlı düşmanlar — bıçaklı, kılıçlı, uzak mesafe ve boss
+- 🏆 20 arena × 35 seviye = 700 seviye toplam içerik
+- ⬆️ XP sistemi ile güçlenme kartları (Pierce, Multishot, Ricochet vb.)
+- 💰 Coin, boss sandığı, günlük ödül ve meta yükseltme sistemi
+- 🔄 Seviye başına 3 canlanma hakkı (reklam sistemi stub olarak hazır)
+- 👗 Kostüm sistemi (küçük bonuslarla, pay-to-win değil)
+
+## 📁 Proje Yapısı
 
 ```
 Assets/Scripts/
-├── Core/               # GameManager (state machine) and EventBus (decoupled events)
-├── Player/             # PlayerController, PlayerStats, PlayerTargeting, WeaponController
-├── Camera/             # CameraFollow (angled top-down, portrait orientation)
-├── Enemies/            # EnemyBase, MeleeEnemy, RangedEnemy, BossEnemy, EnemySpawner
-├── Projectiles/        # Projectile physics and ProjectilePool (object pooling)
-├── Levels/             # LevelManager and ArenaData (ScriptableObject)
-├── XP/                 # XPSystem, UpgradeSystem, UpgradeCardData
-├── UI/                 # FloatingJoystick, HUDManager, UpgradeCardUI, BossCountdownUI, etc.
-├── Economy/            # CoinManager, BossChestSystem, DailyStreakSystem, MetaUpgradeSystem
-├── Revive/             # ReviveSystem, AdStubManager (rewarded ad stubs)
-├── Skins/              # SkinData (ScriptableObject) and SkinManager
-├── Progression/        # ProgressionManager (20 arenas × 35 levels)
-└── Utilities/          # Singleton<T> base class
+├── Core/               # GameManager (oyun durumu) ve EventBus (olay sistemi)
+├── Player/             # Karakter hareketi, can, nişan alma, ateş etme
+├── Camera/             # Kamera takibi (üstten açılı bakış)
+├── Enemies/            # Düşman tipleri: Bıçak, Kılıç, Uzak Mesafe, Boss
+├── Projectiles/        # Mermi sistemi ve nesne havuzu (object pool)
+├── Levels/             # Seviye yöneticisi ve arena verileri
+├── XP/                 # Deneyim puanı ve güçlenme kartları
+├── UI/                 # Joystick, HUD, kart ekranı, boss geri sayımı vb.
+├── Economy/            # Coin, boss sandığı, günlük ödül, meta yükseltme
+├── Revive/             # Canlanma sistemi ve reklam simülasyonu
+├── Skins/              # Kostüm verileri ve yöneticisi
+├── Progression/        # İlerleme sistemi (20 arena × 35 seviye)
+└── Utilities/          # Singleton tasarım kalıbı
 ```
 
-## Core Systems
+## 🚀 Hızlı Başlangıç
 
-### Combat
-- **Floating Joystick**: Spawns at touch position on any non-UI area, with analog movement (deadzone + clamp radius)
-- **Auto-Fire**: Player fires continuously with no manual aim or reload
-- **Threat-Priority Targeting**: Boss → Ranged enemies → Nearest enemy
-- **Projectiles**: Travel until hitting enemy, obstacle, or exceeding weapon range
+1. **Unity Hub** kurun → [unity.com/download](https://unity.com/download)
+2. **Unity 6.3 LTS** sürümünü kurun (Unity Hub → Installs → Install Editor)
+3. Yeni proje oluşturun: **Universal 3D (URP)** şablonu
+4. Bu repo'daki `Assets/Scripts/` klasörünü projenizin `Assets/` içine kopyalayın
+5. Unity'de sahne kurulumu yapın (detaylar aşağıda)
 
-### Enemies
-- **Melee Knife** (Arena 1, Phase 1): Short range (1.5u), fast
-- **Melee Sword** (Arena 1, Phase 2): Medium range (2.5u)
-- **Ranged** (Arena 1, Phase 3): Maintains distance (5-7u), fires projectiles
-- **Boss**: Every 5 levels, multiple attack phases, countdown overlay ("BIG BOSS SPAWNING IN 10..9..")
+> **📖 Detaylı kurulum için:** [KURULUM_REHBERI.md](KURULUM_REHBERI.md) — Sıfırdan her adımı ekran ekran anlatır.
 
-### Level Pacing (~120 seconds per level)
-- 0-35s: Melee knife enemies only
-- 35-65s: Sword enemies join
-- 65s+: Ranged enemies added
-- Difficulty: easy → medium → brief relief → chaos → final spike
+## ⚔️ Oyun Sistemleri
 
-### XP & Upgrades
-- Kill-based XP (~3 upgrades per level)
-- 3 upgrade cards: 1 stat + 1 weapon feature + 1 random
-- Card tiers: Blue (+3), Purple (+5), Red (weapon features)
-- Duplicate limits: Same stat max 2 times per run
-- Reroll: 1 per level (1500 coins or ad)
+### Savaş
+- **Kayan Joystick**: Ekranda herhangi bir yere dokunarak joystick oluşur
+- **Otomatik Ateş**: Oyuncu sürekli ateş eder, nişan almaz
+- **Tehdit Öncelikli Hedefleme**: Boss → Uzak mesafe düşmanlar → En yakın düşman
+- **Mermiler**: Düşmana çarpana, engele çarpana veya menzil bitene kadar gider
 
-### Weapon Features (unlocked via XP)
-- **Pierce**: Projectiles pass through enemies
-- **Multishot**: Fire multiple projectiles
-- **Ricochet**: Projectiles bounce between enemies
-- **Explosive Rounds**: AoE damage on impact
-- **Slow On Hit**: Debuff on hit enemies
+### Düşmanlar
+| Tip | Menzil | Ne Zaman Çıkar |
+|-----|--------|-----------------|
+| 🗡️ Bıçaklı | 1.5 birim | 0-35 saniye |
+| ⚔️ Kılıçlı | 2.5 birim | 35-65 saniye |
+| 🏹 Uzak Mesafe | 5-7 birim | 65+ saniye |
+| 👹 Boss | Değişken | Her 5. seviye |
 
-### Revive System
-- Max 3 revives per level (rewarded ad flow)
-- 15% coin penalty per revive
-- 3-second invulnerability shield
-- XP and boss HP unchanged after revive
+### Seviye Akışı (~120 saniye)
+Kolay → Orta → Kısa mola → Kaos → Son hamle
 
-### Economy
-- **Coins**: Earned from kills, reduced 25% payout when replaying completed arenas
-- **Boss Chests**: Drop from every boss (60% coins, 25% skin fragments, 15% meta tokens)
-- **Daily Streak**: 15-day cycle (100→1500 coins), "Claim x2" ad option
-- **Meta Upgrades**: Persistent stat boosts (MaxHP, BaseDamage, MoveSpeed, CoinBonus) with caps
+### XP ve Güçlenme
+- Düşman öldürdükçe XP kazanırsın (~her seviye 3 güçlenme)
+- 3 kart çıkar: 1 stat + 1 silah özelliği + 1 rastgele
+- Kart renkleri: 🔵 Mavi (+3), 🟣 Mor (+5), 🔴 Kırmızı (silah özellikleri)
+- Tekrar atma: Seviye başına 1 hak (1500 coin veya reklam)
 
-### Progression
-- 20 arenas × 35 levels = 700 total levels
-- Complete all 35 levels in an arena to unlock the next
-- Previous arenas remain playable with reduced rewards
-- Each arena introduces 1 new enemy type + 1 new weapon feature
+### Silah Özellikleri
+| Özellik | Açıklama |
+|---------|----------|
+| 🔫 Pierce | Mermi düşmanların içinden geçer |
+| 🔫 Multishot | Aynı anda birden fazla mermi atar |
+| 🔫 Ricochet | Mermi düşmanlar arasında sekmeli |
+| 💥 Explosive Rounds | Çarpışmada alan hasarı verir |
+| 🧊 Slow On Hit | Vurulan düşman yavaşlar |
 
-### Skins
-- All skins visible but locked (goal-oriented)
-- Small non-P2W boosts (8-10% total cap)
-- Purchase via coins, fragments, or direct purchase
+### Ekonomi
+- 💰 **Coinler**: Düşman öldürerek kazanılır (tekrar oynanan arenalarda %25 ödeme)
+- 📦 **Boss Sandığı**: Her bosstan düşer (%60 coin, %25 kostüm parçası, %15 meta token)
+- 📅 **Günlük Ödül**: 15 günlük döngü (100→1500 coin), "2x Reklam" seçeneği
+- ⬆️ **Meta Yükseltme**: Kalıcı stat artışları (maks 5 seviye)
 
-## Setup Instructions
+### Canlanma
+- Seviye başına en fazla 3 canlanma
+- Her canlanma %15 coin cezası
+- 3 saniyelik dokunulmazlık kalkanı
+- XP ve boss canı değişmez
 
-1. Open Unity Hub and create a new project using **Unity 6.3 LTS (6000.3.9f1)** with the **Universal 3D (URP)** template
-2. Copy the `Assets/Scripts/` folder into your project's `Assets/` directory
-3. Set up the scene hierarchy:
-   - Create a Player GameObject with `PlayerController`, `PlayerStats`, `PlayerTargeting`, and `WeaponController`
-   - Add `CharacterController` component to the Player
-   - Create a Canvas with `FloatingJoystick` and `HUDManager`
-   - Create an empty GameObject with `GameManager`, `LevelManager`, `EnemySpawner`
-   - Add `CoinManager`, `ProgressionManager`, `SkinManager` singletons
-4. Create enemy prefabs with `MeleeEnemy`, `RangedEnemy`, or `BossEnemy` components
-5. Create a projectile prefab with `Projectile` component and Rigidbody
-6. Set up NavMesh for enemy navigation
-7. Configure `ArenaData` ScriptableObjects for each arena
-8. Configure `SkinData` ScriptableObjects for each skin
+### İlerleme
+- 20 arena × 35 seviye = 700 toplam seviye
+- Arena bitirmeden sonrakine geçemezsiniz
+- Eski arenalar tekrar oynanabilir (ödüller azaltılmış)
 
-## Architecture Notes
+## 🏗️ Teknik Mimari
 
-- **Event-Driven**: Systems communicate through `EventBus` (static events) for loose coupling
-- **Singleton Pattern**: Managers use a generic `Singleton<T>` base with `DontDestroyOnLoad`
-- **Object Pooling**: `ProjectilePool` pre-instantiates and recycles projectiles
-- **ScriptableObjects**: `ArenaData` and `SkinData` define data-driven content
-- **Ad Stubs**: `AdStubManager` provides simulated ad callbacks (replace with real SDK for production)
-- **PlayerPrefs Persistence**: Coins, progression, skins, and daily streak saved locally
+- **Olay Tabanlı**: Sistemler `EventBus` ile iletişim kurar (gevşek bağlantı)
+- **Singleton Kalıbı**: Yöneticiler `Singleton<T>` ile `DontDestroyOnLoad` kullanır
+- **Nesne Havuzu**: `ProjectilePool` mermileri yeniden kullanır (performans)
+- **ScriptableObject**: `ArenaData` ve `SkinData` veri odaklı içerik tanımlar
+- **Reklam Stub'ları**: `AdStubManager` simüle reklam callback'leri sağlar
+- **PlayerPrefs**: Coinler, ilerleme, kostümler ve günlük ödül yerel olarak kaydedilir
 
-## Technology
+## 🛠️ Teknoloji
 
-- **Engine**: Unity 6.3 LTS (6000.3.9f1)
-- **Render Pipeline**: Universal Render Pipeline (URP)
-- **Platform**: Mobile (Portrait orientation)
-- **Language**: C# (.NET Standard)
-- **Navigation**: Unity NavMesh (enemy AI)
-- **UI**: Unity UI (uGUI) with TextMeshPro
+| Bileşen | Değer |
+|---------|-------|
+| Motor | Unity 6.3 LTS (6000.3.9f1) |
+| Render | Universal Render Pipeline (URP) |
+| Platform | Mobil (Dikey yönlendirme) |
+| Dil | C# (.NET Standard) |
+| Navigasyon | Unity NavMesh (düşman AI) |
+| Arayüz | Unity UI (uGUI) + TextMeshPro |
