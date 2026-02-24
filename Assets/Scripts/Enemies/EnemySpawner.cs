@@ -223,6 +223,7 @@ namespace DesertArena.Enemies
             }
 
             // Countdown
+            EventBus.RaiseBossCountdownStarted(bossCountdownDuration);
             for (int i = bossCountdownDuration; i > 0; i--)
             {
                 Debug.Log($"BIG BOSS SPAWNING IN {i}...");

@@ -1,4 +1,5 @@
 using UnityEngine;
+using DesertArena.UI;
 
 namespace DesertArena.Player
 {
@@ -135,18 +136,5 @@ namespace DesertArena.Player
         }
 
         #endregion
-    }
-
-    /// <summary>
-    /// Minimal floating joystick interface.
-    /// Replace with your actual joystick implementation (e.g., from an Asset Store package).
-    /// </summary>
-    public class FloatingJoystick : MonoBehaviour
-    {
-        /// <summary>Horizontal axis value (-1 to 1).</summary>
-        public float Horizontal { get; set; }
-
-        /// <summary>Vertical axis value (-1 to 1).</summary>
-        public float Vertical { get; set; }
     }
 }

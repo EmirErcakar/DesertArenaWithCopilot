@@ -46,6 +46,19 @@ namespace DesertArena.Core
         /// <summary>Fired when a boss enemy is defeated.</summary>
         public static event Action OnBossDied;
 
+        /// <summary>Fired when the boss countdown begins. Passes countdown duration.</summary>
+        public static event Action<int> OnBossCountdownStarted;
+
+        #endregion
+
+        #region Level Events
+
+        /// <summary>Fired when a level starts.</summary>
+        public static event Action OnLevelStarted;
+
+        /// <summary>Fired when a level ends. Passes true for victory, false otherwise.</summary>
+        public static event Action<bool> OnLevelEnded;
+
         #endregion
 
         #region Economy Events
@@ -70,6 +83,9 @@ namespace DesertArena.Core
         /// <summary>Fired when the player selects an upgrade. Passes upgrade data.</summary>
         public static event Action<UpgradeData> OnUpgradeSelected;
 
+        /// <summary>Fired when the XP bar fills and an upgrade is available.</summary>
+        public static event Action OnXPLevelUp;
+
         #endregion
 
         #region Raise Methods
@@ -90,6 +106,24 @@ namespace DesertArena.Core
         public static void RaiseBossDied()
         {
             OnBossDied?.Invoke();
+        }
+
+        /// <summary>Call when the boss countdown begins.</summary>
+        public static void RaiseBossCountdownStarted(int seconds)
+        {
+            OnBossCountdownStarted?.Invoke(seconds);
+        }
+
+        /// <summary>Call when a level starts.</summary>
+        public static void RaiseLevelStarted()
+        {
+            OnLevelStarted?.Invoke();
+        }
+
+        /// <summary>Call when a level ends.</summary>
+        public static void RaiseLevelEnded(bool victory)
+        {
+            OnLevelEnded?.Invoke(victory);
         }
 
         /// <summary>Call when coins are collected.</summary>
@@ -116,6 +150,12 @@ namespace DesertArena.Core
             OnUpgradeSelected?.Invoke(data);
         }
 
+        /// <summary>Call when the XP bar fills and an upgrade is available.</summary>
+        public static void RaiseXPLevelUp()
+        {
+            OnXPLevelUp?.Invoke();
+        }
+
         #endregion
 
         #region Cleanup
@@ -132,6 +172,10 @@ namespace DesertArena.Core
             OnXPGained = null;
             OnPlayerRevived = null;
             OnUpgradeSelected = null;
+            OnXPLevelUp = null;
+            OnBossCountdownStarted = null;
+            OnLevelStarted = null;
+            OnLevelEnded = null;
         }
 
         #endregion
