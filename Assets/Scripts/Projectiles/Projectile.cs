@@ -82,8 +82,10 @@ namespace DesertArena.Projectiles
 
         private void Update()
         {
+            if (!_initialized) return;
+
             float moveDistance = speed * Time.deltaTime;
-            transform.position += (_initialized ? _direction : transform.forward) * moveDistance;
+            transform.position += _direction * moveDistance;
 
             _distanceTraveled += moveDistance;
             if (_distanceTraveled >= maxRange)
@@ -146,11 +148,13 @@ namespace DesertArena.Projectiles
         }
 
         /// <summary>
-        /// Destroys or returns this projectile to the pool.
+        /// Returns this projectile to the pool if available, otherwise destroys it.
         /// </summary>
         private void DestroyProjectile()
         {
-            Destroy(gameObject);
+            _initialized = false;
+            _distanceTraveled = 0f;
+            ProjectilePool.Return(gameObject);
         }
 
         #endregion

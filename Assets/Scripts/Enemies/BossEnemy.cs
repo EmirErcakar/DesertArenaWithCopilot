@@ -205,7 +205,11 @@ namespace DesertArena.Enemies
             direction.Normalize();
 
             Quaternion rotation = Quaternion.LookRotation(direction);
-            GameObject projObj = Instantiate(projectilePrefab, spawnPoint.position, rotation);
+            GameObject projObj = ProjectilePool.Get(spawnPoint.position, rotation);
+            if (projObj == null)
+            {
+                projObj = Instantiate(projectilePrefab, spawnPoint.position, rotation);
+            }
 
             Projectile proj = projObj.GetComponent<Projectile>();
             if (proj != null)
@@ -220,8 +224,7 @@ namespace DesertArena.Enemies
         /// </summary>
         private void OnDeathInternal()
         {
-            // Invoke the base class OnDeath event via a helper
-            // (We can't invoke the base event directly, so we use EventBus)
+            RaiseOnDeath();
             EventBus.RaiseEnemyKilled(EnemyType.Boss);
             EventBus.RaiseBossDied();
             EventBus.RaiseCoinCollected(coinReward);

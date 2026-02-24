@@ -101,11 +101,18 @@ namespace DesertArena.Projectiles
 
         /// <summary>
         /// Returns a projectile to the pool for reuse.
+        /// Falls back to Destroy if no pool instance exists.
         /// </summary>
         /// <param name="projectile">The projectile GameObject to return.</param>
         public static void Return(GameObject projectile)
         {
             if (projectile == null) return;
+
+            if (_instance == null)
+            {
+                Object.Destroy(projectile);
+                return;
+            }
 
             projectile.SetActive(false);
             _activeProjectiles.Remove(projectile);

@@ -198,6 +198,15 @@ namespace DesertArena.Enemies
             return Vector3.SqrMagnitude(playerTransform.position - transform.position);
         }
 
+        /// <summary>
+        /// Invokes the <see cref="OnDeath"/> event. Use in subclasses that
+        /// override <see cref="Die"/> and need to fire the event manually.
+        /// </summary>
+        protected void RaiseOnDeath()
+        {
+            OnDeath?.Invoke(this);
+        }
+
         #endregion
     }
 }

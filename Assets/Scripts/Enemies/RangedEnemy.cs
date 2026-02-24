@@ -112,9 +112,12 @@ namespace DesertArena.Enemies
             direction.Normalize();
 
             Quaternion rotation = Quaternion.LookRotation(direction);
-            GameObject projObj = Instantiate(projectilePrefab, spawnPoint.position, rotation);
+            GameObject projObj = ProjectilePool.Get(spawnPoint.position, rotation);
+            if (projObj == null)
+            {
+                projObj = Instantiate(projectilePrefab, spawnPoint.position, rotation);
+            }
 
-            // Configure the projectile component if present
             Projectile proj = projObj.GetComponent<Projectile>();
             if (proj != null)
             {
