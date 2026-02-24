@@ -12,7 +12,6 @@ namespace DesertArena.Utilities
         #region Fields
 
         private static T _instance;
-        private static readonly object _lock = new object();
         private static bool _applicationIsQuitting;
 
         [SerializeField]
@@ -36,21 +35,18 @@ namespace DesertArena.Utilities
                     return null;
                 }
 
-                lock (_lock)
+                if (_instance == null)
                 {
+                    _instance = FindAnyObjectByType<T>();
+
                     if (_instance == null)
                     {
-                        _instance = FindAnyObjectByType<T>();
-
-                        if (_instance == null)
-                        {
-                            var singletonObject = new GameObject($"{typeof(T).Name} (Singleton)");
-                            _instance = singletonObject.AddComponent<T>();
-                        }
+                        var singletonObject = new GameObject($"{typeof(T).Name} (Singleton)");
+                        _instance = singletonObject.AddComponent<T>();
                     }
-
-                    return _instance;
                 }
+
+                return _instance;
             }
         }
 

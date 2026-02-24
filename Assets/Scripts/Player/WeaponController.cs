@@ -103,7 +103,7 @@ namespace DesertArena.Player
         {
             Transform spawnPoint = _firePoint != null ? _firePoint : transform;
 
-            Vector3 direction = (target.position - spawnPoint.position).normalized;
+            Vector3 direction = target.position - spawnPoint.position;
             direction.y = 0f;
             direction.Normalize();
 

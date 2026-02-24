@@ -104,29 +104,29 @@ namespace DesertArena.Player
                 if (col == null) continue;
 
                 Transform enemyTransform = col.transform;
-                float dist = Vector3.SqrMagnitude(enemyTransform.position - myPos);
+                float distSqr = Vector3.SqrMagnitude(enemyTransform.position - myPos);
 
                 // Check for enemy tag component to determine type
                 var enemyTag = col.GetComponent<EnemyTag>();
 
                 if (enemyTag != null)
                 {
-                    if (enemyTag.Type == Core.EnemyType.Boss && dist < bestBossDist)
+                    if (enemyTag.Type == Core.EnemyType.Boss && distSqr < bestBossDist)
                     {
                         bestBoss = enemyTransform;
-                        bestBossDist = dist;
+                        bestBossDist = distSqr;
                     }
-                    else if (enemyTag.Type == Core.EnemyType.Ranged && dist < bestRangedDist)
+                    else if (enemyTag.Type == Core.EnemyType.Ranged && distSqr < bestRangedDist)
                     {
                         bestRanged = enemyTransform;
-                        bestRangedDist = dist;
+                        bestRangedDist = distSqr;
                     }
                 }
 
-                if (dist < bestAnyDist)
+                if (distSqr < bestAnyDist)
                 {
                     bestAny = enemyTransform;
-                    bestAnyDist = dist;
+                    bestAnyDist = distSqr;
                 }
             }
 
