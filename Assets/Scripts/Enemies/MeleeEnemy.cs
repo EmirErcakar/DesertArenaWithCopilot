@@ -54,7 +54,7 @@ namespace DesertArena.Enemies
             if (distSqr <= attackRange * attackRange)
             {
                 // In range – stop and attack
-                if (agent != null && agent.isOnNavMesh)
+                if (!_useSimpleMovement && agent != null && agent.enabled && agent.isOnNavMesh)
                 {
                     agent.isStopped = true;
                 }
@@ -65,7 +65,7 @@ namespace DesertArena.Enemies
             else
             {
                 // Chase the player
-                if (agent != null && agent.isOnNavMesh)
+                if (!_useSimpleMovement && agent != null && agent.enabled && agent.isOnNavMesh)
                 {
                     agent.isStopped = false;
                 }

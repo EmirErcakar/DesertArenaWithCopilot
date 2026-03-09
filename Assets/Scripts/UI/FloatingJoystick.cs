@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace DesertArena.UI
 {
@@ -7,17 +8,19 @@ namespace DesertArena.UI
     /// Touch-based floating joystick that spawns at the touch position.
     /// Attach to a Canvas child with a RectTransform. Implements pointer
     /// event interfaces for cross-platform input.
+    /// Requires an Image component as a raycast target for pointer events.
     /// </summary>
+    [RequireComponent(typeof(Image))]
     public class FloatingJoystick : MonoBehaviour,
         IPointerDownHandler, IDragHandler, IPointerUpHandler
     {
         #region Serialized Fields
 
         [Header("Components")]
-        [SerializeField] [Tooltip("Background circle RectTransform.")]
+        [SerializeField] [Tooltip("Background circle RectTransform (otomatik oluşturulur).")]
         private RectTransform background;
 
-        [SerializeField] [Tooltip("Handle (knob) circle RectTransform.")]
+        [SerializeField] [Tooltip("Handle (knob) circle RectTransform (otomatik oluşturulur).")]
         private RectTransform handle;
 
         [Header("Settings")]
@@ -55,11 +58,24 @@ namespace DesertArena.UI
 
         private void Awake()
         {
+            // RectTransform'un tüm Canvas alanını kaplamasını sağla
+            EnsureFullScreenRectTransform();
+
+            // Image bileşenini raycast target olarak ayarla
+            EnsureRaycastImage();
+
+            // Canvas ve kamera referanslarını al
             _parentCanvas = GetComponentInParent<Canvas>();
             if (_parentCanvas != null &&
                 _parentCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
             {
                 _canvasCamera = _parentCanvas.worldCamera;
+            }
+
+            // Background ve Handle yoksa otomatik oluştur
+            if (background == null || handle == null)
+            {
+                CreateJoystickVisuals();
             }
 
             HideJoystick();
@@ -140,6 +156,70 @@ namespace DesertArena.UI
         {
             if (background != null) background.gameObject.SetActive(false);
             if (handle != null) handle.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// RectTransform'un tüm parent alanını kaplamasını sağlar (joystick
+        /// ekranın her yerinde çalışır).
+        /// </summary>
+        private void EnsureFullScreenRectTransform()
+        {
+            RectTransform rt = transform as RectTransform;
+            if (rt == null) return;
+
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+        }
+
+        /// <summary>
+        /// Image bileşenini şeffaf raycast target olarak ayarlar.
+        /// Bu olmadan pointer event'leri (dokunma) çalışmaz.
+        /// </summary>
+        private void EnsureRaycastImage()
+        {
+            Image img = GetComponent<Image>();
+            if (img == null) return;
+
+            img.raycastTarget = true;
+
+            // Tamamen şeffaf yap — joystick alanı görünmez ama dokunulabilir
+            img.color = new Color(0f, 0f, 0f, 0f);
+        }
+
+        /// <summary>
+        /// Inspector'da Background ve Handle atanmadıysa otomatik oluşturur.
+        /// </summary>
+        private void CreateJoystickVisuals()
+        {
+            // Background (dış daire)
+            if (background == null)
+            {
+                GameObject bgObj = new GameObject("JoystickBackground");
+                bgObj.transform.SetParent(transform, false);
+                Image bgImg = bgObj.AddComponent<Image>();
+                bgImg.color = new Color(1f, 1f, 1f, 0.3f);
+                bgImg.raycastTarget = false;
+
+                RectTransform bgRt = bgObj.GetComponent<RectTransform>();
+                bgRt.sizeDelta = new Vector2(clampRadius * 2.5f, clampRadius * 2.5f);
+                background = bgRt;
+            }
+
+            // Handle (iç daire / knob)
+            if (handle == null)
+            {
+                GameObject handleObj = new GameObject("JoystickHandle");
+                handleObj.transform.SetParent(transform, false);
+                Image handleImg = handleObj.AddComponent<Image>();
+                handleImg.color = new Color(1f, 1f, 1f, 0.6f);
+                handleImg.raycastTarget = false;
+
+                RectTransform handleRt = handleObj.GetComponent<RectTransform>();
+                handleRt.sizeDelta = new Vector2(clampRadius * 1f, clampRadius * 1f);
+                handle = handleRt;
+            }
         }
 
         #endregion

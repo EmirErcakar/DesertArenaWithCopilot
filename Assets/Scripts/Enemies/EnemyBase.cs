@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.AI;
 using DesertArena.Core;
+using DesertArena.Player;
 
 namespace DesertArena.Enemies
 {
@@ -19,9 +20,10 @@ namespace DesertArena.Enemies
 
     /// <summary>
     /// Abstract base class for all enemies. Provides health, movement via
-    /// NavMeshAgent, damage handling, and death rewards.
+    /// NavMeshAgent (or simple transform movement if NavMesh unavailable),
+    /// damage handling, and death rewards.
+    /// Auto-sets "Enemy" tag and adds EnemyTag component if missing.
     /// </summary>
-    [RequireComponent(typeof(NavMeshAgent))]
     public abstract class EnemyBase : MonoBehaviour
     {
         #region Events
@@ -64,6 +66,7 @@ namespace DesertArena.Enemies
         protected NavMeshAgent agent;
         protected Transform playerTransform;
         protected float currentHP;
+        protected bool _useSimpleMovement;
 
         #endregion
 
@@ -87,8 +90,61 @@ namespace DesertArena.Enemies
 
         protected virtual void Awake()
         {
+            // "Enemy" tag'ini otomatik ata
+            try
+            {
+                gameObject.tag = "Enemy";
+            }
+            catch (Exception)
+            {
+                Debug.LogWarning($"[EnemyBase] 'Enemy' tag bulunamadı! Unity'de Tags ayarından ekleyin.");
+            }
+
+            // EnemyTag bileşeni yoksa otomatik ekle
+            if (GetComponent<EnemyTag>() == null)
+            {
+                EnemyTag tag = gameObject.AddComponent<EnemyTag>();
+                // Type'ı ayarla
+                var field = typeof(EnemyTag).GetField("_enemyType",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (field != null) field.SetValue(tag, MapToEnemyType());
+            }
+
+            // NavMeshAgent'ı al veya oluştur
             agent = GetComponent<NavMeshAgent>();
-            agent.speed = moveSpeed;
+
+            if (agent == null)
+            {
+                // NavMeshAgent yoksa ekle
+                agent = gameObject.AddComponent<NavMeshAgent>();
+            }
+
+            // NavMesh'in kullanılabilirliğini kontrol et
+            if (agent != null && !agent.isOnNavMesh)
+            {
+                // NavMesh üzerinde değilse, en yakın noktaya taşı
+                if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 10f, NavMesh.AllAreas))
+                {
+                    transform.position = hit.position;
+                    agent.Warp(hit.position);
+                }
+                else
+                {
+                    // NavMesh tamamen yoksa basit hareket kullan
+                    _useSimpleMovement = true;
+                    if (agent != null)
+                    {
+                        agent.enabled = false;
+                    }
+                    Debug.LogWarning($"[EnemyBase] NavMesh bulunamadı — basit hareket modu aktif ({gameObject.name})");
+                }
+            }
+
+            if (agent != null && agent.enabled)
+            {
+                agent.speed = moveSpeed;
+            }
+
             currentHP = maxHP;
         }
 
@@ -148,7 +204,7 @@ namespace DesertArena.Enemies
             EventBus.RaiseXPGained(xpReward);
 
             // Stop movement
-            if (agent != null && agent.isOnNavMesh)
+            if (agent != null && agent.enabled && agent.isOnNavMesh)
             {
                 agent.isStopped = true;
             }
@@ -161,11 +217,26 @@ namespace DesertArena.Enemies
         #region Protected Methods
 
         /// <summary>
-        /// Moves the NavMeshAgent toward the player's position.
+        /// Moves toward the player. Uses NavMeshAgent if available,
+        /// otherwise falls back to simple transform movement.
         /// </summary>
         protected virtual void MoveTowardPlayer()
         {
-            if (agent == null || !agent.isOnNavMesh) return;
+            if (_useSimpleMovement)
+            {
+                // Basit transform hareketi (NavMesh yoksa)
+                Vector3 direction = (playerTransform.position - transform.position);
+                direction.y = 0f;
+                if (direction.sqrMagnitude > 0.01f)
+                {
+                    direction.Normalize();
+                    transform.position += direction * moveSpeed * Time.deltaTime;
+                    transform.rotation = Quaternion.LookRotation(direction);
+                }
+                return;
+            }
+
+            if (agent == null || !agent.enabled || !agent.isOnNavMesh) return;
 
             agent.SetDestination(playerTransform.position);
         }

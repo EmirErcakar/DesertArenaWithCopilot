@@ -117,7 +117,7 @@ namespace DesertArena.Enemies
             if (currentHP > 0f) currentHP = 0f;
 
             // Stop movement
-            if (agent != null && agent.isOnNavMesh)
+            if (agent != null && agent.enabled && agent.isOnNavMesh)
             {
                 agent.isStopped = true;
             }
@@ -154,7 +154,7 @@ namespace DesertArena.Enemies
         {
             if (distSqr <= attackRange * attackRange)
             {
-                if (agent != null && agent.isOnNavMesh)
+                if (!_useSimpleMovement && agent != null && agent.enabled && agent.isOnNavMesh)
                 {
                     agent.isStopped = true;
                 }
@@ -178,7 +178,7 @@ namespace DesertArena.Enemies
             }
             else
             {
-                if (agent != null && agent.isOnNavMesh)
+                if (!_useSimpleMovement && agent != null && agent.enabled && agent.isOnNavMesh)
                 {
                     agent.isStopped = false;
                 }

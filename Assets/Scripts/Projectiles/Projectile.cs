@@ -80,6 +80,17 @@ namespace DesertArena.Projectiles
 
         #region Unity Lifecycle
 
+        private void Start()
+        {
+            // Initialize çağrılmadıysa forward yönüne göre otomatik başlat
+            if (!_initialized)
+            {
+                _direction = transform.forward;
+                _distanceTraveled = 0f;
+                _initialized = true;
+            }
+        }
+
         private void Update()
         {
             if (!_initialized) return;

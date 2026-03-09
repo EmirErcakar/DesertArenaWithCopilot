@@ -1,6 +1,8 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 using DesertArena.Core;
+using DesertArena.Player;
 
 namespace DesertArena.Enemies
 {
@@ -8,26 +10,27 @@ namespace DesertArena.Enemies
     /// Manages wave-based enemy spawning for a level.
     /// Spawns enemies in phases over time, with difficulty ramping.
     /// Boss spawns on every 5th level with a countdown timer.
+    /// Auto-creates spawn points and basic enemy prefabs if not assigned.
     /// </summary>
     public class EnemySpawner : MonoBehaviour
     {
         #region Serialized Fields
 
         [Header("Spawn Points")]
-        [SerializeField] [Tooltip("Transforms where enemies can be spawned.")]
+        [SerializeField] [Tooltip("Transforms where enemies can be spawned (otomatik oluşturulur).")]
         private Transform[] spawnPoints;
 
         [Header("Enemy Prefabs")]
-        [SerializeField] [Tooltip("Melee knife enemy prefab.")]
+        [SerializeField] [Tooltip("Melee knife enemy prefab (otomatik oluşturulur).")]
         private GameObject meleeKnifePrefab;
 
-        [SerializeField] [Tooltip("Melee sword enemy prefab.")]
+        [SerializeField] [Tooltip("Melee sword enemy prefab (otomatik oluşturulur).")]
         private GameObject meleeSwordPrefab;
 
-        [SerializeField] [Tooltip("Ranged enemy prefab.")]
+        [SerializeField] [Tooltip("Ranged enemy prefab (otomatik oluşturulur).")]
         private GameObject rangedEnemyPrefab;
 
-        [SerializeField] [Tooltip("Boss enemy prefab.")]
+        [SerializeField] [Tooltip("Boss enemy prefab (otomatik oluşturulur).")]
         private GameObject bossPrefab;
 
         [Header("Spawn Settings")]
@@ -53,6 +56,10 @@ namespace DesertArena.Enemies
         [Header("Boss")]
         [SerializeField] [Tooltip("Boss countdown duration in seconds.")]
         private int bossCountdownDuration = 10;
+
+        [Header("Auto-Setup")]
+        [SerializeField] [Tooltip("Arena radius for auto-generated spawn points.")]
+        private float arenaRadius = 20f;
 
         #endregion
 
@@ -90,6 +97,15 @@ namespace DesertArena.Enemies
 
         private void Start()
         {
+            // Spawn noktaları yoksa otomatik oluştur
+            if (spawnPoints == null || spawnPoints.Length == 0)
+            {
+                CreateAutoSpawnPoints();
+            }
+
+            // Prefab'lar atanmadıysa otomatik oluştur
+            EnsureEnemyPrefabs();
+
             _spawningActive = true;
 
             // Check if this is a boss level (every 5th level)
@@ -151,7 +167,15 @@ namespace DesertArena.Enemies
             if (prefab == null) return;
 
             Transform point = spawnPoints[Random.Range(0, spawnPoints.Length)];
-            GameObject enemyObj = Instantiate(prefab, point.position, point.rotation);
+            Vector3 spawnPos = point.position;
+
+            // NavMesh varsa en yakın geçerli noktayı bul
+            if (NavMesh.SamplePosition(spawnPos, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+            {
+                spawnPos = hit.position;
+            }
+
+            GameObject enemyObj = Instantiate(prefab, spawnPos, point.rotation);
 
             EnemyBase enemy = enemyObj.GetComponent<EnemyBase>();
             if (enemy != null)
@@ -249,6 +273,192 @@ namespace DesertArena.Enemies
             _bossSpawned = true;
             Transform point = spawnPoints[Random.Range(0, spawnPoints.Length)];
             Instantiate(bossPrefab, point.position, point.rotation);
+        }
+
+        /// <summary>
+        /// Arena etrafında otomatik spawn noktaları oluşturur.
+        /// </summary>
+        private void CreateAutoSpawnPoints()
+        {
+            int pointCount = 8;
+            spawnPoints = new Transform[pointCount];
+
+            GameObject container = new GameObject("SpawnPoints (Auto)");
+            container.transform.SetParent(transform);
+
+            for (int i = 0; i < pointCount; i++)
+            {
+                float angle = i * (360f / pointCount) * Mathf.Deg2Rad;
+                Vector3 pos = new Vector3(
+                    Mathf.Cos(angle) * arenaRadius,
+                    0f,
+                    Mathf.Sin(angle) * arenaRadius
+                );
+
+                GameObject point = new GameObject($"SpawnPoint_{i}");
+                point.transform.SetParent(container.transform);
+                point.transform.position = pos;
+                spawnPoints[i] = point.transform;
+            }
+
+            Debug.Log($"[EnemySpawner] {pointCount} otomatik spawn noktası oluşturuldu (yarıçap: {arenaRadius})");
+        }
+
+        /// <summary>
+        /// Prefab'lar atanmadıysa basit düşman prefab'ları oluşturur.
+        /// </summary>
+        private void EnsureEnemyPrefabs()
+        {
+            if (meleeKnifePrefab == null)
+            {
+                meleeKnifePrefab = CreateBasicEnemyPrefab("MeleeKnife_Auto",
+                    EnemySubType.MeleeKnife, new Color(0.8f, 0.2f, 0.2f));
+                Debug.Log("[EnemySpawner] MeleeKnife prefab otomatik oluşturuldu");
+            }
+
+            if (meleeSwordPrefab == null)
+            {
+                meleeSwordPrefab = CreateBasicEnemyPrefab("MeleeSword_Auto",
+                    EnemySubType.MeleeSword, new Color(0.8f, 0.5f, 0.2f));
+                Debug.Log("[EnemySpawner] MeleeSword prefab otomatik oluşturuldu");
+            }
+
+            if (rangedEnemyPrefab == null)
+            {
+                rangedEnemyPrefab = CreateBasicRangedPrefab("RangedEnemy_Auto",
+                    new Color(0.2f, 0.2f, 0.8f));
+                Debug.Log("[EnemySpawner] RangedEnemy prefab otomatik oluşturuldu");
+            }
+
+            // Boss prefab sadece boss seviyelerinde gerekli
+            if (bossPrefab == null)
+            {
+                bossPrefab = CreateBasicBossPrefab("BossEnemy_Auto",
+                    new Color(0.6f, 0.1f, 0.6f));
+                Debug.Log("[EnemySpawner] BossEnemy prefab otomatik oluşturuldu");
+            }
+        }
+
+        /// <summary>
+        /// Basit bir melee düşman prefab'ı oluşturur (Capsule şeklinde).
+        /// </summary>
+        private GameObject CreateBasicEnemyPrefab(string name, EnemySubType subType, Color color)
+        {
+            GameObject prefab = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            prefab.name = name;
+            prefab.tag = "Enemy";
+            prefab.SetActive(false);
+
+            // Renk ata
+            Renderer rend = prefab.GetComponent<Renderer>();
+            if (rend != null)
+            {
+                Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                if (mat.shader == null) mat = new Material(Shader.Find("Standard"));
+                mat.color = color;
+                rend.material = mat;
+            }
+
+            // Collider'ı trigger yap (fizik çarpışmaları için)
+            CapsuleCollider col = prefab.GetComponent<CapsuleCollider>();
+            if (col != null) col.isTrigger = false;
+
+            // MeleeEnemy bileşenini ekle
+            MeleeEnemy melee = prefab.AddComponent<MeleeEnemy>();
+            // EnemySubType ayarlamak için reflection kullan (private field)
+            SetEnemySubType(melee, subType);
+
+            // EnemyTag bileşeni ekle
+            EnemyTag tag = prefab.AddComponent<EnemyTag>();
+            SetEnemyTagType(tag, subType == EnemySubType.MeleeKnife || subType == EnemySubType.MeleeSword
+                ? EnemyType.Melee : EnemyType.Ranged);
+
+            prefab.transform.SetParent(transform);
+
+            return prefab;
+        }
+
+        /// <summary>
+        /// Basit bir ranged düşman prefab'ı oluşturur.
+        /// </summary>
+        private GameObject CreateBasicRangedPrefab(string name, Color color)
+        {
+            GameObject prefab = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            prefab.name = name;
+            prefab.tag = "Enemy";
+            prefab.SetActive(false);
+
+            Renderer rend = prefab.GetComponent<Renderer>();
+            if (rend != null)
+            {
+                Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                if (mat.shader == null) mat = new Material(Shader.Find("Standard"));
+                mat.color = color;
+                rend.material = mat;
+            }
+
+            RangedEnemy ranged = prefab.AddComponent<RangedEnemy>();
+            SetEnemySubType(ranged, EnemySubType.Ranged);
+
+            EnemyTag tag = prefab.AddComponent<EnemyTag>();
+            SetEnemyTagType(tag, EnemyType.Ranged);
+
+            prefab.transform.SetParent(transform);
+
+            return prefab;
+        }
+
+        /// <summary>
+        /// Basit bir boss düşman prefab'ı oluşturur.
+        /// </summary>
+        private GameObject CreateBasicBossPrefab(string name, Color color)
+        {
+            GameObject prefab = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            prefab.name = name;
+            prefab.tag = "Enemy";
+            prefab.SetActive(false);
+
+            // Boss daha büyük olsun
+            prefab.transform.localScale = new Vector3(2f, 2f, 2f);
+
+            Renderer rend = prefab.GetComponent<Renderer>();
+            if (rend != null)
+            {
+                Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                if (mat.shader == null) mat = new Material(Shader.Find("Standard"));
+                mat.color = color;
+                rend.material = mat;
+            }
+
+            BossEnemy boss = prefab.AddComponent<BossEnemy>();
+            SetEnemySubType(boss, EnemySubType.Boss);
+
+            EnemyTag tag = prefab.AddComponent<EnemyTag>();
+            SetEnemyTagType(tag, EnemyType.Boss);
+
+            prefab.transform.SetParent(transform);
+
+            return prefab;
+        }
+
+        /// <summary>
+        /// EnemyBase'deki protected enemySubType alanını ayarlar.
+        /// </summary>
+        private void SetEnemySubType(EnemyBase enemy, EnemySubType subType)
+        {
+            var field = typeof(EnemyBase).GetField("enemySubType",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (field != null) field.SetValue(enemy, subType);
+        }
+
+        /// <summary>
+        /// EnemyTag'deki private _enemyType alanını ayarlar.
+        /// </summary>
+        private void SetEnemyTagType(EnemyTag tag, EnemyType type)
+        {
+            var field = typeof(EnemyTag).GetField("_enemyType",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (field != null) field.SetValue(tag, type);
         }
 
         #endregion

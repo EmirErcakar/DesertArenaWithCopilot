@@ -61,27 +61,39 @@ namespace DesertArena.Enemies
             if (dist > preferredDistanceMax)
             {
                 // Too far – approach
-                if (agent != null && agent.isOnNavMesh)
+                if (!_useSimpleMovement && agent != null && agent.enabled && agent.isOnNavMesh)
                 {
                     agent.isStopped = false;
                     agent.SetDestination(playerTransform.position);
+                }
+                else if (_useSimpleMovement)
+                {
+                    Vector3 dir = (playerTransform.position - transform.position).normalized;
+                    dir.y = 0f;
+                    transform.position += dir * moveSpeed * Time.deltaTime;
                 }
             }
             else if (dist < preferredDistanceMin)
             {
                 // Too close – back away
-                if (agent != null && agent.isOnNavMesh)
+                if (!_useSimpleMovement && agent != null && agent.enabled && agent.isOnNavMesh)
                 {
                     agent.isStopped = false;
                     Vector3 awayDir = (transform.position - playerTransform.position).normalized;
                     Vector3 retreatPos = transform.position + awayDir * 2f;
                     agent.SetDestination(retreatPos);
                 }
+                else if (_useSimpleMovement)
+                {
+                    Vector3 awayDir = (transform.position - playerTransform.position).normalized;
+                    awayDir.y = 0f;
+                    transform.position += awayDir * moveSpeed * Time.deltaTime;
+                }
             }
             else
             {
                 // In preferred zone – stop moving
-                if (agent != null && agent.isOnNavMesh)
+                if (!_useSimpleMovement && agent != null && agent.enabled && agent.isOnNavMesh)
                 {
                     agent.isStopped = true;
                 }

@@ -75,11 +75,35 @@ namespace DesertArena.Core
 
         #endregion
 
+        #region Serialized Fields (Auto Start)
+
+        [Header("Auto Start")]
+        [SerializeField]
+        [Tooltip("Sahne yüklendiğinde oyunu otomatik başlat (menü ekranı yoksa açık bırakın).")]
+        private bool _autoStartGame = true;
+
+        #endregion
+
         #region Unity Lifecycle
 
         protected override void OnSingletonAwake()
         {
-            SetState(GameState.Menu);
+            // Varsayılan durum Menu — Time.timeScale = 0 yapar.
+            // _autoStartGame açıksa Start() içinde Playing'e geçilir.
+            _currentState = GameState.Menu;
+        }
+
+        private void Start()
+        {
+            if (_autoStartGame)
+            {
+                StartGame();
+            }
+            else
+            {
+                // Manuel başlatma bekleniyorsa timeScale'i 0 yap
+                HandleTimeScale(GameState.Menu);
+            }
         }
 
         #endregion

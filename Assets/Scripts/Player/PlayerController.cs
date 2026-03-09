@@ -57,6 +57,23 @@ namespace DesertArena.Player
             _weaponController = GetComponent<WeaponController>();
         }
 
+        private void Start()
+        {
+            // Joystick referansı yoksa sahnede otomatik bul
+            if (_joystick == null)
+            {
+                _joystick = FindAnyObjectByType<FloatingJoystick>();
+                if (_joystick != null)
+                {
+                    Debug.Log("[PlayerController] Joystick otomatik olarak bulundu");
+                }
+                else
+                {
+                    Debug.LogWarning("[PlayerController] FloatingJoystick bulunamadı! Canvas'a FloatingJoystick ekleyin.");
+                }
+            }
+        }
+
         private void Update()
         {
             if (_stats.IsDead) return;

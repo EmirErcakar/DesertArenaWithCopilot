@@ -45,6 +45,29 @@ namespace DesertArena.Camera
 
         #region Unity Lifecycle
 
+        private void Start()
+        {
+            // Target atanmadıysa Player tag'li objeyi otomatik bul
+            if (_target == null)
+            {
+                GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+                if (playerObj != null)
+                {
+                    _target = playerObj.transform;
+                    Debug.Log("[CameraFollow] Player otomatik olarak bulundu ve hedefe atandı");
+                    SnapToTarget();
+                }
+                else
+                {
+                    Debug.LogWarning("[CameraFollow] 'Player' tag'li obje bulunamadı! Inspector'da Target atayın.");
+                }
+            }
+            else
+            {
+                SnapToTarget();
+            }
+        }
+
         private void LateUpdate()
         {
             if (_target == null) return;
