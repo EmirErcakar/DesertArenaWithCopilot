@@ -390,6 +390,8 @@ namespace DesertArena.Enemies
             {
                 rend.material = CreateColorMaterial(color);
             }
+
+            RangedEnemy ranged = prefab.AddComponent<RangedEnemy>();
             SetEnemySubType(ranged, EnemySubType.Ranged);
 
             EnemyTag tag = prefab.AddComponent<EnemyTag>();
