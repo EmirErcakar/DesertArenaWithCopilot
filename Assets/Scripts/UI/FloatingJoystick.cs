@@ -35,7 +35,7 @@ namespace DesertArena.UI
         #region Private Fields
 
         private Canvas _parentCanvas;
-        private Camera _canvasCamera;
+        private UnityEngine.Camera _canvasCamera;
         private Vector2 _inputDirection;
         private bool _isDragging;
 
