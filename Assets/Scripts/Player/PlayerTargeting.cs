@@ -109,6 +109,7 @@ namespace DesertArena.Player
 
         /// <summary>
         /// Tag tabanlı düşman tespiti — LayerMask ayarlanmadığında kullanılır.
+        /// Not: Bu metot her karede değil, _updateInterval (varsayılan 0.2s) aralığında çağrılır.
         /// </summary>
         private void UpdateTargetByTag()
         {

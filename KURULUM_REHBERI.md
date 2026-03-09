@@ -156,9 +156,11 @@ C:\Projeler\DesertArena\
 
 ---
 
-## 7. 🎬 Oyun Sahnesini Kurma
+## 7. 🎬 Oyun Sahnesini Kurma (Güncellendi — Çoğu Şey Otomatik!)
 
-Bu en detaylı bölüm. Unity'de sahneyi adım adım oluşturacağız.
+> ⚡ **İyi haber:** Son güncelleme ile birçok şey **otomatik olarak** oluşturulur.
+> Düşman prefab'ları, mermi, spawn noktaları, joystick görselleri — hepsi otomatik!
+> Siz sadece temel objeleri oluşturup bileşenleri eklemeniz yeterli.
 
 ### Adım 7.1: Arena Zeminini Oluşturun
 1. Unity'de üst menüden: **GameObject → 3D Object → Plane** seçin
@@ -168,105 +170,57 @@ Bu en detaylı bölüm. Unity'de sahneyi adım adım oluşturacağız.
    - **Scale**: X=5, Y=1, Z=5 (büyük bir zemin için)
 4. Zemine bir isim verin: "Plane" yazısına çift tıklayıp **"Arena"** yazın
 
-### Adım 7.2: Görünmez Sınır Duvarları Ekleyin
-1. **GameObject → Create Empty** ile boş bir obje oluşturun
-2. İsmini **"Boundaries"** yapın
-3. Bu objenin altına 4 adet duvar ekleyin:
-   - **GameObject → 3D Object → Cube** ile 4 küp oluşturun
-   - Her birini arenanın bir kenarına yerleştirin (duvar gibi)
-   - **Inspector**'da **Mesh Renderer** bileşenini kaldırın (görünmez olması için)
-   - Her birinin **Box Collider** bileşeni kalsın
-
-### Adım 7.3: Oyuncu (Player) Oluşturun
+### Adım 7.2: Oyuncu (Player) Oluşturun ⭐ ÖNEMLİ
 1. **GameObject → 3D Object → Capsule** seçin (oyuncu karakteri)
 2. İsmini **"Player"** yapın
 3. **Inspector**'da **Position**: X=0, Y=1, Z=0
-4. **Tag** alanını **"Player"** olarak ayarlayın (üst kısımda)
-5. Şu bileşenleri ekleyin (**Add Component** butonuyla):
-   - **Character Controller** (Unity'nin yerleşik bileşeni)
-   - **PlayerController** (bizim script'imiz — arama kutusuna yazın)
-   - **PlayerStats** (otomatik eklenecek — PlayerController ile birlikte gelir)
-   - **PlayerTargeting** (otomatik eklenecek)
-   - **WeaponController** (otomatik eklenecek)
+4. ⭐ **Tag** alanını **"Player"** olarak ayarlayın (Inspector'ın en üstünde, ismin altında)
+5. **Add Component** butonuna tıklayın ve **"PlayerController"** yazıp ekleyin
+   - **PlayerStats**, **PlayerTargeting**, **WeaponController**, **CharacterController** otomatik eklenecek!
 
-### Adım 7.4: Kamerayı Ayarlayın
+### Adım 7.3: Kamerayı Ayarlayın
 1. **Hierarchy**'de **"Main Camera"** nesnesini seçin
-2. **Inspector**'da **CameraFollow** bileşenini ekleyin (Add Component → CameraFollow)
-3. **CameraFollow** bileşeninde:
-   - **Target** alanına **Player** objesini sürükleyin
-   - **Offset**: X=0, Y=12, Z=-8 (üstten açılı bakış)
+2. **Add Component** → **"CameraFollow"** yazıp ekleyin
+3. **Not:** Target otomatik olarak "Player" tag'li objeyi bulur — bir şey sürüklemenize gerek yok!
 
-### Adım 7.5: UI Sistemi (Arayüz) Oluşturun
-1. **GameObject → UI → Canvas** seçin
+### Adım 7.4: UI (Joystick) Oluşturun
+1. **GameObject → UI → Canvas** seçin (otomatik EventSystem de oluşur)
 2. Canvas'ı seçin, **Inspector**'da:
    - **Canvas Scaler** → **UI Scale Mode**: "Scale With Screen Size"
    - **Reference Resolution**: X=1080, Y=1920 (dikey mobil)
    - **Match**: 0.5
-3. Canvas altına şu boş objeleri oluşturun (sağ tık → Create Empty):
-   - **"JoystickArea"** — FloatingJoystick bileşeni ekleyin
-   - **"HUD"** — HUDManager bileşeni ekleyin
-   - **"UpgradePanel"** — UpgradeCardUI bileşeni ekleyin
-   - **"BossCountdown"** — BossCountdownUI bileşeni ekleyin
-   - **"RevivePrompt"** — RevivePromptUI bileşeni ekleyin
-   - **"BossChestPanel"** — BossChestUI bileşeni ekleyin
-   - **"DailyStreakPanel"** — DailyStreakUI bileşeni ekleyin
+3. Canvas üzerine sağ tık → **Create Empty** → İsmini **"JoystickArea"** yapın
+4. **JoystickArea**'yı seçin → **Add Component** → **"FloatingJoystick"** yazıp ekleyin
+   - **Image** bileşeni otomatik eklenir (şeffaf raycast target)
+   - **Joystick background ve handle** otomatik oluşturulur
+   - **RectTransform** otomatik tam ekran kaplar
 
-### Adım 7.6: Yönetici (Manager) Objelerini Oluşturun
-1. **GameObject → Create Empty** ile boş obje oluşturun
-2. İsmini **"GameManager"** yapın
-3. Şu bileşenleri ekleyin:
-   - **GameManager** (Core klasöründen)
+### Adım 7.5: Yönetici (Manager) Objelerini Oluşturun
+1. **GameObject → Create Empty** → İsim: **"GameManager"**
+2. Şu bileşenleri ekleyin:
+   - **GameManager** (oyun otomatik başlar — "Auto Start Game" açık)
    - **LevelManager**
-   - **EnemySpawner**
-   - **XPSystem**
-   - **UpgradeSystem**
-   - **ReviveSystem**
-   - **BossChestSystem**
-4. Başka bir boş obje oluşturup **"EconomyManager"** adını verin:
-   - **CoinManager** ekleyin
-   - **DailyStreakSystem** ekleyin
-   - **MetaUpgradeSystem** ekleyin
-5. Başka bir boş obje: **"ProgressionManager"**:
-   - **ProgressionManager** ekleyin
-6. Başka bir boş obje: **"SkinManager"**:
-   - **SkinManager** ekleyin
+   - **EnemySpawner** (düşman prefab'ları ve spawn noktaları **otomatik oluşturulur**)
+3. Başka bir boş obje: **"Bootstrapper"**
+   - **GameBootstrapper** ekleyin (eksik EventSystem ve tag kontrolü yapar)
 
-### Adım 7.7: Düşman Prefab'ları Oluşturun
-1. **Assets** klasöründe sağ tık → **Create → Folder** → İsim: **"Prefabs"**
-2. **GameObject → 3D Object → Capsule** ile bir kapsül oluşturun
-3. İsmini **"MeleeKnifeEnemy"** yapın
-4. Bileşen ekleyin: **MeleeEnemy**
-5. **Hierarchy**'den bu objeyi **Assets/Prefabs** klasörüne sürükleyin (bu prefab yapar)
-6. Sahndeki orijinali silin
-7. Aynı işlemi tekrarlayın:
-   - **"MeleeSwordEnemy"** — MeleeEnemy bileşeni (Inspector'da melee türünü "Sword" yapın)
-   - **"RangedEnemy"** — RangedEnemy bileşeni
-   - **"BossEnemy"** — BossEnemy bileşeni
+### Adım 7.6: NavMesh (Opsiyonel — Olmasa Da Çalışır!)
+> ℹ️ NavMesh yoksa düşmanlar basit hareketle (transform) oyuncuya yaklaşır.
+> Daha akıllı hareket istiyorsanız NavMesh kurun:
 
-### Adım 7.8: Mermi (Projectile) Prefab'ı Oluşturun
-1. **GameObject → 3D Object → Sphere** ile bir küre oluşturun
-2. **Scale**: X=0.2, Y=0.2, Z=0.2 (küçük mermi)
-3. İsmini **"Projectile"** yapın
-4. Bileşen ekleyin:
-   - **Rigidbody** (Use Gravity: kapalı)
-   - **Projectile** (bizim script'imiz)
-5. Bu objeyi **Assets/Prefabs** klasörüne sürükleyin
-6. Sahndeki orijinali silin
-
-### Adım 7.9: NavMesh Ayarları (Düşman Hareketi İçin)
 1. Üst menüden: **Window → AI → Navigation** seçin
 2. **Arena** (zemin) objesini seçin
 3. Navigation penceresinde **Bake** sekmesine geçin
 4. **"Bake"** butonuna tıklayın — zemin mavi renk olacak
-5. Bu, düşmanların zeminde yürüyebileceği anlamına gelir
 
-### Adım 7.10: Referansları Bağlayın
-1. **Player** objesini seçin:
-   - **WeaponController** → **Projectile Prefab** alanına mermi prefab'ını sürükleyin
-2. **GameManager** objesini seçin:
-   - **EnemySpawner** → Düşman prefab'larını ilgili alanlara sürükleyin
-3. **JoystickArea** objesini seçin:
-   - **Player** → **PlayerController** → **Joystick** alanına JoystickArea'yı sürükleyin
+### Adım 7.7: Referansları Bağlama (Çoğu Otomatik!)
+> ✅ Çoğu referans otomatik bulunur:
+> - **CameraFollow** → Player'ı otomatik bulur
+> - **PlayerController** → Joystick'i otomatik bulur
+> - **EnemySpawner** → Prefab yoksa otomatik oluşturur
+> - **WeaponController** → Mermi prefab yoksa otomatik oluşturur
+
+**Manuel atamanız gereken tek şey:** Eğer kendiniz oluşturduğunuz düşman prefab'ları varsa, bunları EnemySpawner'a sürükleyin.
 
 ---
 
@@ -281,10 +235,15 @@ Bu en detaylı bölüm. Unity'de sahneyi adım adım oluşturacağız.
 ### Sorun Giderme
 | Sorun | Çözüm |
 |-------|-------|
-| Kırmızı hatalar Console'da | Script'lerin doğru klasörde olduğunu kontrol edin |
-| Karakter hareket etmiyor | PlayerController'da Joystick referansının atandığını kontrol edin |
-| Düşmanlar gelmiyor | EnemySpawner'da prefab'ların atandığını kontrol edin |
-| Kamera takip etmiyor | CameraFollow'da Target'ın Player olduğunu kontrol edin |
+| Kırmızı hatalar Console'da | Script'lerin doğru `Assets/Scripts/` klasöründe olduğunu kontrol edin |
+| Hiçbir şey çalışmıyor (her şey donuk) | **GameManager** bileşeninde **"Auto Start Game"** kutusunun ✅ işaretli olduğunu kontrol edin |
+| Joystick çıkmıyor | JoystickArea objesinde **FloatingJoystick** ve **Image** bileşenlerinin olduğunu kontrol edin |
+| Düşmanlar gelmiyor | Console'da `[EnemySpawner]` mesajlarını kontrol edin — prefab otomatik oluşturulmalı |
+| Player ateş etmiyor | Düşmanlar yok → hedef yok → ateş yok. Önce düşman sorununu çözün |
+| Kamera takip etmiyor | Player objesinin **Tag = "Player"** olduğunu kontrol edin |
+| Düşmanlar hareket etmiyor | NavMesh yoksa otomatik basit hareket kullanılır — Console'da uyarı mesajını kontrol edin |
+| "Enemy tag bulunamadı" uyarısı | Unity'de **Edit → Project Settings → Tags and Layers** → Tags altına "Enemy" ekleyin |
+| "Projectile tag bulunamadı" uyarısı | Tags altına "Projectile" ekleyin |
 
 ---
 

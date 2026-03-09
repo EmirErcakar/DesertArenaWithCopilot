@@ -95,7 +95,7 @@ namespace DesertArena.Enemies
             {
                 gameObject.tag = "Enemy";
             }
-            catch (Exception)
+            catch (UnityException)
             {
                 Debug.LogWarning($"[EnemyBase] 'Enemy' tag bulunamadı! Unity'de Tags ayarından ekleyin.");
             }

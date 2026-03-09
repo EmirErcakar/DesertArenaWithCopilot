@@ -353,10 +353,7 @@ namespace DesertArena.Enemies
             Renderer rend = prefab.GetComponent<Renderer>();
             if (rend != null)
             {
-                Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                if (mat.shader == null) mat = new Material(Shader.Find("Standard"));
-                mat.color = color;
-                rend.material = mat;
+                rend.material = CreateColorMaterial(color);
             }
 
             // Collider'ı trigger yap (fizik çarpışmaları için)
@@ -391,13 +388,8 @@ namespace DesertArena.Enemies
             Renderer rend = prefab.GetComponent<Renderer>();
             if (rend != null)
             {
-                Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                if (mat.shader == null) mat = new Material(Shader.Find("Standard"));
-                mat.color = color;
-                rend.material = mat;
+                rend.material = CreateColorMaterial(color);
             }
-
-            RangedEnemy ranged = prefab.AddComponent<RangedEnemy>();
             SetEnemySubType(ranged, EnemySubType.Ranged);
 
             EnemyTag tag = prefab.AddComponent<EnemyTag>();
@@ -424,10 +416,7 @@ namespace DesertArena.Enemies
             Renderer rend = prefab.GetComponent<Renderer>();
             if (rend != null)
             {
-                Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                if (mat.shader == null) mat = new Material(Shader.Find("Standard"));
-                mat.color = color;
-                rend.material = mat;
+                rend.material = CreateColorMaterial(color);
             }
 
             BossEnemy boss = prefab.AddComponent<BossEnemy>();
@@ -459,6 +448,19 @@ namespace DesertArena.Enemies
             var field = typeof(EnemyTag).GetField("_enemyType",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (field != null) field.SetValue(tag, type);
+        }
+
+        /// <summary>
+        /// Belirtilen renkte bir Material oluşturur. URP shader yoksa Standard kullanır.
+        /// </summary>
+        private static Material CreateColorMaterial(Color color)
+        {
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+            if (shader == null) shader = Shader.Find("Standard");
+
+            Material mat = new Material(shader);
+            mat.color = color;
+            return mat;
         }
 
         #endregion

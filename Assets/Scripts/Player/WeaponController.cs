@@ -161,10 +161,11 @@ namespace DesertArena.Player
             Renderer rend = prefab.GetComponent<Renderer>();
             if (rend != null)
             {
-                Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                if (mat.shader == null) mat = new Material(Shader.Find("Standard"));
+                Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+                if (shader == null) shader = Shader.Find("Standard");
+
+                Material mat = new Material(shader);
                 mat.color = Color.yellow;
-                mat.SetColor("_EmissionColor", Color.yellow * 2f);
                 rend.material = mat;
             }
 
