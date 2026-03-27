@@ -96,7 +96,7 @@ namespace DesertArena.Projectiles
             if (!_initialized) return;
 
             float moveDistance = speed * Time.deltaTime;
-            transform.position += _direction * moveDistance;
+            transform.Translate(_direction * moveDistance, Space.World);
 
             _distanceTraveled += moveDistance;
             if (_distanceTraveled >= maxRange)
@@ -110,11 +110,6 @@ namespace DesertArena.Projectiles
             HandleHit(other.gameObject);
         }
 
-        private void OnCollisionEnter(Collision collision)
-        {
-            HandleHit(collision.gameObject);
-        }
-
         #endregion
 
         #region Private Methods
@@ -124,6 +119,13 @@ namespace DesertArena.Projectiles
         /// </summary>
         private void HandleHit(GameObject hitObject)
         {
+            // Kendi sahibine çarpma
+            if (source == ProjectileSource.Player && hitObject.CompareTag("Player")) return;
+            if (source == ProjectileSource.Enemy && hitObject.CompareTag("Enemy")) return;
+
+            // Diğer mermilere çarpma
+            if (hitObject.CompareTag("Projectile")) return;
+
             // Player projectiles damage enemies
             if (source == ProjectileSource.Player && hitObject.CompareTag("Enemy"))
             {
@@ -151,11 +153,7 @@ namespace DesertArena.Projectiles
                 return;
             }
 
-            // Hit an obstacle (anything that isn't the same team)
-            if (!hitObject.CompareTag("Projectile"))
-            {
-                DestroyProjectile();
-            }
+            // Tanınmayan objeleri (zemin, duvar vb.) yoksay
         }
 
         /// <summary>
@@ -165,7 +163,16 @@ namespace DesertArena.Projectiles
         {
             _initialized = false;
             _distanceTraveled = 0f;
-            ProjectilePool.Return(gameObject);
+
+            // Pool varsa geri ver, yoksa yok et
+            if (ProjectilePool.IsAvailable)
+            {
+                ProjectilePool.Return(gameObject);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
 
         #endregion

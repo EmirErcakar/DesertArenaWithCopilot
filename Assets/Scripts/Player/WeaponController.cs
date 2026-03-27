@@ -96,7 +96,6 @@ namespace DesertArena.Player
             Transform target = _targeting != null ? _targeting.CurrentTarget : null;
             if (target == null) return;
 
-            // Check range
             float distSqr = Vector3.SqrMagnitude(target.position - transform.position);
             if (distSqr > _range * _range) return;
 
@@ -117,12 +116,19 @@ namespace DesertArena.Player
 
             Vector3 direction = target.position - spawnPoint.position;
             direction.y = 0f;
+
+            if (direction.sqrMagnitude < 0.01f) return;
+
             direction.Normalize();
 
-            if (direction.sqrMagnitude < 0.001f) return;
+            // Spawn mermiyi player'ın biraz önünde oluştur (kendi collider'ına çarpmasın)
+            Vector3 spawnPos = spawnPoint.position + direction * 1.2f;
+            spawnPos.y = spawnPoint.position.y;
 
             Quaternion rotation = Quaternion.LookRotation(direction);
-            GameObject projectileObj = Instantiate(_projectilePrefab, spawnPoint.position, rotation);
+            GameObject projectileObj = Instantiate(_projectilePrefab, spawnPos, rotation);
+            projectileObj.transform.SetParent(null);
+            projectileObj.SetActive(true);
 
             // Projectile bileşenini bul ve Initialize et
             Projectile proj = projectileObj.GetComponent<Projectile>();
@@ -173,7 +179,7 @@ namespace DesertArena.Player
             SphereCollider col = prefab.GetComponent<SphereCollider>();
             if (col != null) col.isTrigger = true;
 
-            // Rigidbody ekle
+            // Rigidbody ekle (trigger tespiti için gerekli)
             Rigidbody rb = prefab.AddComponent<Rigidbody>();
             rb.useGravity = false;
             rb.isKinematic = true;
@@ -181,7 +187,8 @@ namespace DesertArena.Player
             // Projectile bileşeni ekle
             prefab.AddComponent<Projectile>();
 
-            prefab.transform.SetParent(transform);
+            // Prefab'ı sahnede gizli tut (child yapmıyoruz ki Instantiate pozisyonu bozmasın)
+            DontDestroyOnLoad(prefab);
 
             return prefab;
         }

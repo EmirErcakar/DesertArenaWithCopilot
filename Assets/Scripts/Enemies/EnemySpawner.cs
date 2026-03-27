@@ -176,6 +176,8 @@ namespace DesertArena.Enemies
             }
 
             GameObject enemyObj = Instantiate(prefab, spawnPos, point.rotation);
+            enemyObj.transform.SetParent(null);
+            enemyObj.SetActive(true);
 
             EnemyBase enemy = enemyObj.GetComponent<EnemyBase>();
             if (enemy != null)
@@ -280,20 +282,20 @@ namespace DesertArena.Enemies
         /// </summary>
         private void CreateAutoSpawnPoints()
         {
-            int pointCount = 8;
+            int pointCount = 5;
             spawnPoints = new Transform[pointCount];
 
             GameObject container = new GameObject("SpawnPoints (Auto)");
             container.transform.SetParent(transform);
 
+            float spawnZ = arenaRadius;
+            float spreadX = arenaRadius * 0.8f;
+
             for (int i = 0; i < pointCount; i++)
             {
-                float angle = i * (360f / pointCount) * Mathf.Deg2Rad;
-                Vector3 pos = new Vector3(
-                    Mathf.Cos(angle) * arenaRadius,
-                    0f,
-                    Mathf.Sin(angle) * arenaRadius
-                );
+                float t = pointCount > 1 ? (float)i / (pointCount - 1) : 0.5f;
+                float x = Mathf.Lerp(-spreadX, spreadX, t);
+                Vector3 pos = new Vector3(x, 0f, spawnZ);
 
                 GameObject point = new GameObject($"SpawnPoint_{i}");
                 point.transform.SetParent(container.transform);
@@ -301,7 +303,7 @@ namespace DesertArena.Enemies
                 spawnPoints[i] = point.transform;
             }
 
-            Debug.Log($"[EnemySpawner] {pointCount} otomatik spawn noktası oluşturuldu (yarıçap: {arenaRadius})");
+            Debug.Log($"[EnemySpawner] {pointCount} spawn noktası üst kenardan oluşturuldu (Z={spawnZ})");
         }
 
         /// <summary>
@@ -360,6 +362,12 @@ namespace DesertArena.Enemies
             CapsuleCollider col = prefab.GetComponent<CapsuleCollider>();
             if (col != null) col.isTrigger = false;
 
+            // Rigidbody ekle (mermi trigger çarpışması için gerekli)
+            Rigidbody rb = prefab.AddComponent<Rigidbody>();
+            rb.useGravity = false;
+            rb.isKinematic = false;
+            rb.constraints = RigidbodyConstraints.FreezeAll;
+
             // MeleeEnemy bileşenini ekle
             MeleeEnemy melee = prefab.AddComponent<MeleeEnemy>();
             // EnemySubType ayarlamak için reflection kullan (private field)
@@ -370,7 +378,7 @@ namespace DesertArena.Enemies
             SetEnemyTagType(tag, subType == EnemySubType.MeleeKnife || subType == EnemySubType.MeleeSword
                 ? EnemyType.Melee : EnemyType.Ranged);
 
-            prefab.transform.SetParent(transform);
+            DontDestroyOnLoad(prefab);
 
             return prefab;
         }
@@ -394,10 +402,16 @@ namespace DesertArena.Enemies
             RangedEnemy ranged = prefab.AddComponent<RangedEnemy>();
             SetEnemySubType(ranged, EnemySubType.Ranged);
 
+            // Rigidbody ekle (mermi trigger çarpışması için gerekli)
+            Rigidbody rb = prefab.AddComponent<Rigidbody>();
+            rb.useGravity = false;
+            rb.isKinematic = false;
+            rb.constraints = RigidbodyConstraints.FreezeAll;
+
             EnemyTag tag = prefab.AddComponent<EnemyTag>();
             SetEnemyTagType(tag, EnemyType.Ranged);
 
-            prefab.transform.SetParent(transform);
+            DontDestroyOnLoad(prefab);
 
             return prefab;
         }
@@ -424,10 +438,16 @@ namespace DesertArena.Enemies
             BossEnemy boss = prefab.AddComponent<BossEnemy>();
             SetEnemySubType(boss, EnemySubType.Boss);
 
+            // Rigidbody ekle (mermi trigger çarpışması için gerekli)
+            Rigidbody rb = prefab.AddComponent<Rigidbody>();
+            rb.useGravity = false;
+            rb.isKinematic = false;
+            rb.constraints = RigidbodyConstraints.FreezeAll;
+
             EnemyTag tag = prefab.AddComponent<EnemyTag>();
             SetEnemyTagType(tag, EnemyType.Boss);
 
-            prefab.transform.SetParent(transform);
+            DontDestroyOnLoad(prefab);
 
             return prefab;
         }

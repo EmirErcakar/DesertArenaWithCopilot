@@ -145,7 +145,7 @@ namespace DesertArena.Player
 
         private void HandleAutoFire()
         {
-            // Continuously fire when a target is in range
+            // Hedef varsa otomatik ateş et, yoksa bekleme
             if (_targeting.CurrentTarget != null)
             {
                 _weaponController.TryFire();

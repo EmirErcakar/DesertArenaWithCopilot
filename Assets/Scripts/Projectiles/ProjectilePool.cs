@@ -28,6 +28,13 @@ namespace DesertArena.Projectiles
 
         #endregion
 
+        #region Public Static Properties
+
+        /// <summary>True if a pool instance exists and is ready.</summary>
+        public static bool IsAvailable => _instance != null;
+
+        #endregion
+
         #region Unity Lifecycle
 
         private void Awake()
